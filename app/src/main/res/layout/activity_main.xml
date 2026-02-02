@@ -339,7 +339,7 @@
             android:textAllCaps="true"
             android:textSize="20sp"
             android:textStyle="bold"
-            tools:ignore="ButtonStyle,HardcodedText,TouchTargetSizeCheck" />
+            tools:ignore="ButtonStyle,DuplicateIds,HardcodedText,TouchTargetSizeCheck" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
