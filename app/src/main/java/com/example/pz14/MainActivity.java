@@ -1,84 +1,149 @@
 package com.example.pz14;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.annotation.SuppressLint;
 import android.os.Bundle;
-import android.text.TextUtils;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+public class MainActivity extends AppCompatActivity {
 
-public class MainActivity extends MainActivity implements View.OnClickListener {
+    TextView resultField;
+    EditText numberField;
+    TextView operationField;
+    Double operand = null;
+    String lastOperation = "=";
 
-    EditText etNum1;
-    EditText etNum2;
-    Button btnAdd;
-    Button btnSub;
-    Button btnMult;
-    Button btnDiv;
-    TextView tvResult;
-    String oper = "";
-
+    @SuppressLint("MissingInflatedId")
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        set ContentView;(R.layout.activity_main);
+        setContentView(R.layout.activity_main);
 
-        etNum1 = (EditText) etNum1.findViewById(R.id.n1);
-        etNum2 = (EditText) etNum2.findViewById(R.id.n2);
-        btnAdd = (Button) etNum2.findViewById(R.id.add);
-        btnSub = (Button) btnAdd.findViewById(R.id.sub);
-        btnMult = (Button) btnMult.findViewById(R.id.mul);
-        btnDiv = (Button) btnDiv.findViewById(R.id.div);
-        tvResult = (TextView) tvResult.findViewById(R.id.resultField);
+        resultField = findViewById(R.id.resultField);
+        numberField = findViewById(R.id.numberField);
+        operationField = findViewById(R.id.operationField);
 
-        btnAdd.setOnClickListener((View.OnClickListener) this);
-        btnSub.setOnClickListener((View.OnClickListener) this);
-        btnMult.setOnClickListener((View.OnClickListener) this);
-        btnDiv.setOnClickListener((View.OnClickListener) this);
+        findViewById(R.id.add).setOnClickListener(v -> onOperationClick("+"));
+        findViewById(R.id.sub).setOnClickListener(v -> onOperationClick("-"));
+        findViewById(R.id.mul).setOnClickListener(v -> onOperationClick("*"));
+        findViewById(R.id.div).setOnClickListener(v -> onOperationClick("/"));
+        findViewById(R.id.rav).setOnClickListener(v -> onOperationClick("="));
 
+        findViewById(R.id.n0).setOnClickListener(v -> onNumberClick("0"));
+        findViewById(R.id.n1).setOnClickListener(v -> onNumberClick("1"));
+        findViewById(R.id.n2).setOnClickListener(v -> onNumberClick("2"));
+        findViewById(R.id.n3).setOnClickListener(v -> onNumberClick("3"));
+        findViewById(R.id.n4).setOnClickListener(v -> onNumberClick("4"));
+        findViewById(R.id.n5).setOnClickListener(v -> onNumberClick("5"));
+        findViewById(R.id.n6).setOnClickListener(v -> onNumberClick("6"));
+        findViewById(R.id.n7).setOnClickListener(v -> onNumberClick("7"));
+        findViewById(R.id.n8).setOnClickListener(v -> onNumberClick("8"));
+        findViewById(R.id.n9).setOnClickListener(v -> onNumberClick("9"));
+        findViewById(R.id.clear).setOnClickListener(v -> onNumberClick(","));
+
+        Button clearBtn = findViewById(R.id.clear);
+        Button deleteBtn = findViewById(R.id.delete);
+
+        clearBtn.setOnClickListener(v -> clearAll());
+        deleteBtn.setOnClickListener(v -> deleteLastChar());
     }
 
     @Override
-    public void onClick(View v) {
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putString("OPERATION", lastOperation);
+        if (operand != null) outState.putDouble("OPERAND", operand);
+        super.onSaveInstanceState(outState);
+    }
 
-        float num1 = 0;
-        float num2 = 0;
-        float result = 0;
+    @Override
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        lastOperation = savedInstanceState.getString("OPERATION");
+        operand = savedInstanceState.getDouble("OPERAND");
+        resultField.setText(operand != null ? operand.toString().replace('.', ',') : "");
+        operationField.setText(lastOperation);
+    }
 
-        if(TextUtils.isEmpty(etNum1.getText().toString())
-                || TextUtils.isEmpty(etNum2.getText().toString())) {
+    public void onNumberClick(String number) {
+        if (lastOperation.equals("=") && operand != null) {
+            clearAll();
+        }
+        numberField.append(number);
+    }
+
+    public void onOperationClick(String op) {
+        String numberStr = numberField.getText().toString();
+        if (numberStr.isEmpty()) {
+            if (op.equals("=") && operand != null) {
+                operationField.setText(op);
+                lastOperation = op;
+            }
             return;
         }
 
-        num1 = Float.parseFloat(etNum1.getText().toString());
-        num2 = Float.parseFloat(etNum2.getText().toString());
-
-        switch(v.getId()) {
-            case R.id.add:
-            oper = "+";
-            result = num1 + num2;
-            break;
-            case R.id.sub:
-            oper = "-";
-            result = num1 - num2;
-            break;
-            case R.id.mul:
-            oper = "*";
-            result = num1 * num2;
-            break;
-            case R.id.div:
-            oper = "/";
-            result = num1 / num2;
-            break;
-            default:
-                break;
+        numberStr = numberStr.replace(',', '.');
+        try {
+            double number = Double.parseDouble(numberStr);
+            performOperation(number, op);
+        } catch (NumberFormatException e) {
+            numberField.setText("");
         }
-        tvResult.setText(num1 + " "+ oper + " "+ num2 + " = "+ result);
+
+        lastOperation = op;
+        operationField.setText(lastOperation);
+    }
+
+    private void performOperation(double number, String operation) {
+        if (operand == null) {
+            operand = number;
+        } else {
+            if (lastOperation.equals("=")) {
+                lastOperation = operation;
+            }
+
+            switch (lastOperation) {
+                case "=":
+                    operand = number;
+                    break;
+                case "/":
+                    if (number == 0) {
+                        operand = 0.0;
+                    } else {
+                        operand /= number;
+                    }
+                    break;
+                case "*":
+                    operand *= number;
+                    break;
+                case "+":
+                    operand += number;
+                    break;
+                case "-":
+                    operand -= number;
+                    break;
+            }
+        }
+
+        resultField.setText(operand.toString().replace('.', ','));
+        numberField.setText("");
+    }
+
+    private void clearAll() {
+        operand = null;
+        lastOperation = "=";
+        resultField.setText("");
+        operationField.setText("");
+        numberField.setText("");
+    }
+
+    private void deleteLastChar() {
+        String current = numberField.getText().toString();
+        if (!current.isEmpty()) {
+            numberField.setText(current.substring(0, current.length() - 1));
+        }
     }
 }

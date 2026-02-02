@@ -248,7 +248,7 @@
             tools:ignore="ButtonStyle,HardcodedText,VisualLintButtonSize" />
 
         <Button
-            android:id="@+id/comma"
+            android:id="@+id/clear"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -274,7 +274,7 @@
             tools:ignore="ButtonStyle,HardcodedText,VisualLintButtonSize" />
 
         <Button
-            android:id="@+id/eq"
+            android:id="@+id/rav"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -316,7 +316,7 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <Button
-            android:id="@+id/button2"
+            android:id="@+id/delete"
             android:layout_width="36dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -329,7 +329,7 @@
             tools:ignore="ButtonStyle,HardcodedText,TouchTargetSizeCheck,VisualLintBounds" />
 
         <Button
-            android:id="@+id/button"
+            android:id="@+id/clear"
             android:layout_width="36dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
