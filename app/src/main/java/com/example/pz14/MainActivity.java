@@ -1,38 +1,37 @@
 package com.example.pz14;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
-
-    TextView resultField;
-    EditText numberField;
-    TextView operationField;
-    Double operand = null;
-    String lastOperation = "=";
+    private TextView resultField;
+    private EditText numberField;
+    private TextView operationField;
+    private Double operand = null;
+    private String lastOperation = "=";
+    private final DecimalFormat decimalFormat = new DecimalFormat("#.##########", new DecimalFormatSymbols(Locale.getDefault()));
 
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         resultField = findViewById(R.id.resultField);
         numberField = findViewById(R.id.numberField);
         operationField = findViewById(R.id.operationField);
-
         findViewById(R.id.add).setOnClickListener(v -> onOperationClick("+"));
         findViewById(R.id.sub).setOnClickListener(v -> onOperationClick("-"));
         findViewById(R.id.mul).setOnClickListener(v -> onOperationClick("*"));
         findViewById(R.id.div).setOnClickListener(v -> onOperationClick("/"));
         findViewById(R.id.rav).setOnClickListener(v -> onOperationClick("="));
-
         findViewById(R.id.n0).setOnClickListener(v -> onNumberClick("0"));
         findViewById(R.id.n1).setOnClickListener(v -> onNumberClick("1"));
         findViewById(R.id.n2).setOnClickListener(v -> onNumberClick("2"));
@@ -43,28 +42,26 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.n7).setOnClickListener(v -> onNumberClick("7"));
         findViewById(R.id.n8).setOnClickListener(v -> onNumberClick("8"));
         findViewById(R.id.n9).setOnClickListener(v -> onNumberClick("9"));
-        findViewById(R.id.clear).setOnClickListener(v -> onNumberClick(","));
-
+        findViewById(R.id.del).setOnClickListener(v -> onNumberClick(","));
         Button clearBtn = findViewById(R.id.clear);
-        Button deleteBtn = findViewById(R.id.delete);
-
+        Button deleteBtn = findViewById(R.id.del);
         clearBtn.setOnClickListener(v -> clearAll());
         deleteBtn.setOnClickListener(v -> deleteLastChar());
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
         outState.putString("OPERATION", lastOperation);
         if (operand != null) outState.putDouble("OPERAND", operand);
-        super.onSaveInstanceState(outState);
     }
 
     @Override
     protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        lastOperation = savedInstanceState.getString("OPERATION");
-        operand = savedInstanceState.getDouble("OPERAND");
-        resultField.setText(operand != null ? operand.toString().replace('.', ',') : "");
+        lastOperation = savedInstanceState.getString("OPERATION", "=");
+        operand = savedInstanceState.containsKey("OPERAND") ? savedInstanceState.getDouble("OPERAND") : null;
+        resultField.setText(operand != null ? formatDouble(operand) : "");
         operationField.setText(lastOperation);
     }
 
@@ -84,15 +81,16 @@ public class MainActivity extends AppCompatActivity {
             }
             return;
         }
-
         numberStr = numberStr.replace(',', '.');
+        double number;
         try {
-            double number = Double.parseDouble(numberStr);
-            performOperation(number, op);
+            number = Double.parseDouble(numberStr);
         } catch (NumberFormatException e) {
             numberField.setText("");
+            return;
         }
 
+        performOperation(number, op);
         lastOperation = op;
         operationField.setText(lastOperation);
     }
@@ -106,44 +104,48 @@ public class MainActivity extends AppCompatActivity {
             }
 
             switch (lastOperation) {
-                case "=":
-                    operand = number;
-                    break;
-                case "/":
-                    if (number == 0) {
-                        operand = 0.0;
-                    } else {
-                        operand /= number;
-                    }
-                    break;
-                case "*":
-                    operand *= number;
-                    break;
                 case "+":
                     operand += number;
                     break;
                 case "-":
                     operand -= number;
                     break;
+                case "*":
+                    operand *= number;
+                    break;
+                case "/":
+                    if (number == 0) {
+                        resultField.setText("Error");
+                        operand = null;
+                        lastOperation = "=";
+                        return;
+                    } else {
+                        operand /= number;
+                    }
+                    break;
+                default:
+                    operand = number;
+                    break;
             }
         }
 
-        resultField.setText(operand.toString().replace('.', ','));
+        resultField.setText(operand != null ? formatDouble(operand) : "");
         numberField.setText("");
     }
-
     private void clearAll() {
         operand = null;
         lastOperation = "=";
         resultField.setText("");
-        operationField.setText("");
+        operationField.setText(lastOperation);
         numberField.setText("");
     }
-
     private void deleteLastChar() {
         String current = numberField.getText().toString();
         if (!current.isEmpty()) {
             numberField.setText(current.substring(0, current.length() - 1));
         }
+    }
+    private String formatDouble(double value) {
+        return decimalFormat.format(value);
     }
 }
